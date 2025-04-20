@@ -11,9 +11,9 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export default function FilterMenu({
+    categories = DEFAULT_CATEGORIES,
     selected = [],
     onChange,
-    categories = DEFAULT_CATEGORIES,
     className = '',
 }) {
     const [open, setOpen] = useState(false);
@@ -21,12 +21,13 @@ export default function FilterMenu({
 
     // Dropdown schließen, wenn außerhalb geklickt wird
     useEffect(() => {
-        const close = (e) => {
-            if (!wrapperRef.current || wrapperRef.current.contains(e.target)) return;
-            setOpen(false);
-        };
-        document.addEventListener('mousedown', close);
-        return () => document.removeEventListener('mousedown', close);
+        function handleClickOutside(e) {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const toggleCategory = (cat) => {
@@ -43,14 +44,14 @@ export default function FilterMenu({
                 className="px-3 py-2 border rounded dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
                 onClick={() => setOpen((o) => !o)}
             >
-                Filter <span className="ml-1 text-xs">({selected.length || '0'})</span>
+                Filter <span className="ml-1 text-xs">({selected.length || 0})</span>
             </button>
 
             {open && (
                 <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50">
                     <ul className="max-h-60 overflow-y-auto">
                         {categories.map((cat) => {
-                            const id = `cat-${cat}`;
+                            const id = `filter-${cat}`;
                             return (
                                 <li
                                     key={cat}
@@ -65,26 +66,13 @@ export default function FilterMenu({
                                         onClick={(e) => e.stopPropagation()}
                                         className="mr-2 accent-blue-900 dark:accent-blue-600 focus:outline-none focus:ring-0 focus:border-transparent"
                                     />
-                                    <label
-                                        htmlFor={id}
-                                        className="cursor-pointer flex-1"
-                                        onClick={(e) => e.stopPropagation()} // verhindert doppeltes Toggle
-                                    >
+                                    <label htmlFor={id} className="cursor-pointer flex-1" onClick={(e) => e.stopPropagation()}>
                                         {cat}
                                     </label>
                                 </li>
                             );
                         })}
                     </ul>
-
-                    <div className="border-t border-gray-200 dark:border-gray-700 flex justify-between p-2 text-sm">
-                        <button type="button" onClick={() => onChange([])} className="text-blue-600 hover:underline focus:outline-none">
-                            Keine
-                        </button>
-                        <button type="button" onClick={() => onChange(categories)} className="text-blue-600 hover:underline focus:outline-none">
-                            Alle
-                        </button>
-                    </div>
                 </div>
             )}
         </div>
