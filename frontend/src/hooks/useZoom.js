@@ -1,20 +1,19 @@
-// ---------- src/hooks/useZoom.js ----------
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-export default function useZoom(initialScale = 1, minScale = 0.05, maxScale = 50) {
-    const [scale, setScale] = useState(initialScale);
+export default function useZoomPan() {
+    const [scale, setScale] = useState(0.0000001);
+    const [offsetX, setOffsetX] = useState(0);
 
-    function wheel(e) {
+    const onWheel = useCallback(e => {
         e.preventDefault();
-        const factor = Math.exp(-e.deltaY * 0.002);
-        const newScale = Math.min(maxScale, Math.max(minScale, scale * factor));
-        const rect = e.currentTarget.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        // Offset correction
-        const delta = mouseX * (1 / scale - 1 / newScale);
-        setScale(newScale);
-        return { delta };
-    }
+        const delta = e.deltaY;
+        if (e.shiftKey) {
+            setOffsetX(o => o - delta);
+        } else {
+            const factor = delta > 0 ? 1.1 : 0.9;
+            setScale(s => s * factor);
+        }
+    }, []);
 
-    return { scale, wheel };
+    return { scale, offsetX, onWheel };
 }
