@@ -1,17 +1,16 @@
-// src/components/Timeline/EventLayer.jsx
-
 import React from 'react';
 import EventDot from './EventDot';
 
 /**
  * Rendert alle EventDots auf der Achse.
- * Erwartete Props:
- *  - events: Array der Event-Objekte
- *  - scale: Zoom-Faktor (px per ms)
- *  - timelineStart: Startzeit in ms
- *  - offsetX: horizontaler Pan-Offset in px
- *  - height: Höhe des SVG-Containers in px
- *  - onHover: Callback(event|null) für Tooltip-Handling
+ *
+ * Props
+ *  • events          – Array der Event‑Objekte
+ *  • scale           – px per ms
+ *  • timelineStart   – Startzeit (ms seit 1970‑01‑01 UTC)
+ *  • offsetX         – horizontaler Pan‑Offset (px)
+ *  • height          – Höhe des SVG‑Bereichs (px)
+ *  • onHover(obj)    – Callback für Tooltip { event, position } | null
  */
 export default function EventLayer({
     events,
@@ -26,17 +25,20 @@ export default function EventLayer({
     return (
         <g>
             {events.map((event) => {
-                // absoluter Zeit-Offset seit timelineStart
+                // Zeit‑Delta seit timelineStart in ms → px
                 const t = new Date(event.startDate).getTime() - timelineStart;
-                // finale x-Position inkl. Zoom & Pan
                 const x = t * scale + offsetX;
+                const y = midY;
+
                 return (
                     <EventDot
                         key={event.id}
                         x={x}
-                        y={midY}
-                        importance={event.importance}
-                        onMouseEnter={() => onHover(event)}
+                        y={y}
+                        importance={event.importance ?? 1}
+                        onMouseEnter={() =>
+                            onHover({ event, position: { x: x + 8, y: y - 24 } })
+                        }
                         onMouseLeave={() => onHover(null)}
                     />
                 );

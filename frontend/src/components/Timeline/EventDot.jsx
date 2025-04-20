@@ -25,6 +25,7 @@ export default function EventDot({
             opacity={0.8}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
+            style={{ pointerEvents: 'visible' }}
         />
     );
 }

@@ -1,27 +1,41 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
-export default function Axis({ width, height, scale, offsetX }) {
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+export default function Axis({ width, height, scale, offsetX, timelineStart }) {
     const midY = height / 2;
-    // Beispiel Domain: [start, end] in ms seit Epoche
-    const domainStart = 0;
-    const domainEnd = new Date().getTime() + 1000 * 60 * 60 * 24 * 365 * 50; // 50 Jahre Zukunft
-    const pxPerMs = scale;
 
-    const tickInterval = (domainEnd - domainStart) / 10;
-    const ticks = [];
-    for (let t = domainStart; t <= domainEnd; t += tickInterval) {
-        const x = (t - domainStart) * pxPerMs + offsetX;
-        ticks.push({ x, label: new Date(t).getFullYear() });
-    }
+    // aktuell sichtbarer Zeitbereich (ms seit timelineStart)
+    const visibleStartMs = (-offsetX) / scale;
+    const visibleEndMs = (width - offsetX) / scale;
+
+    const visibleStartYear = new Date(timelineStart + visibleStartMs).getUTCFullYear();
+    const visibleEndYear = new Date(timelineStart + visibleEndMs).getUTCFullYear();
+
+    const firstTickYear = Math.floor(visibleStartYear / 10) * 10;
+
+    const ticks = useMemo(() => {
+        const arr = [];
+        for (let y = firstTickYear; y <= visibleEndYear; y += 10) {
+            const x = (new Date(`${y}-01-01T00:00:00Z`).getTime() - timelineStart) * scale + offsetX;
+            // nur rendern, wenn einigermaßen im Viewport (Performance)
+            if (x < -50 || x > width + 50) continue;
+            arr.push({ x, label: y });
+        }
+        return arr;
+    }, [firstTickYear, visibleEndYear, scale, offsetX, width, timelineStart]);
 
     return (
         <g>
-            <line x1={0} y1={midY} x2={width} y2={midY} stroke="currentColor" strokeWidth={2} />
-            {ticks.map((tick, i) => (
-                <g key={i} transform={`translate(${tick.x}, ${midY})`}>
-                    <line y2={-8} stroke="currentColor" />
-                    <text y={-12} textAnchor="middle" className="text-sm">
-                        {tick.label}
+            {/* Grundlinie */}
+            <line x1="0" y1={midY} x2={width} y2={midY} stroke="currentColor" strokeWidth="2" />
+
+            {/* Jahres‑Ticks */}
+            {ticks.map((t, i) => (
+                <g key={i} transform={`translate(${t.x}, ${midY})`}>
+                    <line y2="-8" stroke="currentColor" />
+                    <text y="-12" textAnchor="middle" className="text-xs">
+                        {t.label}
                     </text>
                 </g>
             ))}
