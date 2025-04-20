@@ -1,4 +1,3 @@
-// frontend/src/components/Timeline/TimelineContainer.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import useResizeObserver from '@/hooks/useResizeObserver';
 import useZoomPan from '@/hooks/useZoomPan';
@@ -6,8 +5,6 @@ import useTimelineData from '@/hooks/useTimelineData';
 import Axis from './Axis';
 import EventLayer from './EventLayer';
 import Tooltip from './Tooltip';
-// Nur noch dieses Dropdown verwenden:
-import FilterMenu from '@/components/Filters/FilterMenu';
 
 export default function TimelineContainer() {
     const { ref, width, height } = useResizeObserver();
@@ -15,20 +12,27 @@ export default function TimelineContainer() {
 
     const INITIAL_START = 1900;
     const INITIAL_END = 2050;
-    const { scale, offsetX, onWheel, START_YEAR, END_YEAR, MS_PER_YEAR } =
-        useZoomPan(ref, width, INITIAL_START, INITIAL_END);
+    const {
+        scale,
+        offsetX,
+        onWheel,
+        START_YEAR,
+        END_YEAR,
+        MS_PER_YEAR,
+    } = useZoomPan(ref, width, INITIAL_START, INITIAL_END);
 
     const [hovered, setHovered] = useState(null);
-    const [selectedCats, setSelected] = useState(categories);
+    const [excludedCats, setExcludedCats] = useState([]);
 
     const filteredEvents = useMemo(
         () =>
-            events.filter(
-                (e) =>
-                    selectedCats.length === 0 ||
-                    e.categories?.some((c) => selectedCats.includes(c))
-            ),
-        [events, selectedCats]
+            events.filter((event) => {
+                const cats = Array.isArray(event.categories)
+                    ? event.categories
+                    : [event.category];
+                return !cats.some((c) => excludedCats.includes(c));
+            }),
+        [events, excludedCats]
     );
 
     useEffect(() => {
@@ -40,15 +44,6 @@ export default function TimelineContainer() {
 
     return (
         <div ref={ref} className="relative w-full h-full overflow-hidden">
-            {/* Nur ein FilterMenu – das einzige Button-Element */}
-            <div className="absolute top-4 right-4">
-                <FilterMenu
-                    categories={categories}
-                    selected={selectedCats}
-                    onChange={setSelected}
-                />
-            </div>
-
             <svg width={width} height={height} className="absolute top-0 left-0">
                 <Axis
                     width={width}

@@ -1,4 +1,3 @@
-// src/components/Filters/FilterMenu.jsx
 import React, { useState, useEffect, useRef } from 'react';
 
 const DEFAULT_CATEGORIES = [
@@ -12,14 +11,13 @@ const DEFAULT_CATEGORIES = [
 
 export default function FilterMenu({
     categories = DEFAULT_CATEGORIES,
-    selected = [],
+    excluded = [],        // ausgeblendete Kategorien
     onChange,
     className = '',
 }) {
     const [open, setOpen] = useState(false);
     const wrapperRef = useRef(null);
 
-    // Dropdown schließen, wenn außerhalb geklickt wird
     useEffect(() => {
         function handleClickOutside(e) {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -31,9 +29,9 @@ export default function FilterMenu({
     }, []);
 
     const toggleCategory = (cat) => {
-        const next = selected.includes(cat)
-            ? selected.filter((c) => c !== cat)
-            : [...selected, cat];
+        const next = excluded.includes(cat)
+            ? excluded.filter((c) => c !== cat)
+            : [...excluded, cat];
         onChange(next);
     };
 
@@ -44,7 +42,7 @@ export default function FilterMenu({
                 className="px-3 py-2 border rounded dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
                 onClick={() => setOpen((o) => !o)}
             >
-                Filter <span className="ml-1 text-xs">({selected.length || 0})</span>
+                Filter <span className="ml-1 text-xs">({excluded.length})</span>
             </button>
 
             {open && (
@@ -61,7 +59,7 @@ export default function FilterMenu({
                                     <input
                                         id={id}
                                         type="checkbox"
-                                        checked={selected.includes(cat)}
+                                        checked={!excluded.includes(cat)}
                                         onChange={() => toggleCategory(cat)}
                                         onClick={(e) => e.stopPropagation()}
                                         className="mr-2 accent-blue-900 dark:accent-blue-600 focus:outline-none focus:ring-0 focus:border-transparent"
