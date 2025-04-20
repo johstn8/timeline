@@ -1,42 +1,39 @@
-// src/pages/Home.jsx
-import React, { useState } from 'react';
-import useFetchEvents from '../hooks/useFetchEvents';
-import TimelineContainer from '../components/Timeline/TimelineContainer';
+import React, { useState, useEffect } from 'react';
+import useTimelineData from '../hooks/useTimelineData';
 import FilterMenu from '../components/Filters/FilterMenu';
+import TimelineContainer from '../components/Timeline/TimelineContainer';
 
 export default function Home() {
+    // Lade Events und Kategorien aus Firebase
+    const { events, categories } = useTimelineData();
+
+    // State für ausgewählte Kategorien (initial später gesetzt auf alle)
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [minImportance, setMinImportance] = useState(1);
-    const { events, loading, error } = useFetchEvents({
-        categories: selectedCategories,
-        minImportance,
+
+    // Sobald Kategorien geladen sind und noch nichts ausgewählt, alle auswählen
+    useEffect(() => {
+        if (categories.length > 0 && selectedCategories.length === 0) {
+            setSelectedCategories(categories);
+        }
+    }, [categories]);
+
+    // Gefilterte Events: zeige nur Events, deren Kategorien ausgewählt sind
+    const filteredEvents = events.filter((e) => {
+        const cats = Array.isArray(e.categories) ? e.categories : [e.category];
+        return cats.some((c) => selectedCategories.includes(c));
     });
 
     return (
         <div className="flex flex-col h-full">
-            {/* Header: Filter & ThemeToggle rechtsbündig */}
-            <div className="p-4 flex justify-end items-center space-x-4">
+            <div className="p-4 flex justify-end">
                 <FilterMenu
+                    categories={categories}
                     selected={selectedCategories}
                     onChange={setSelectedCategories}
                 />
             </div>
-
-            {/* Timeline-Fenster füllt Rest aus */}
-            <div className="relative w-full h-full flex-1 overflow-hidden">
-                {loading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <span>Lädt Events…</span>
-                    </div>
-                )}
-                {error && (
-                    <div className="absolute inset-0 flex items-center justify-center text-red-600">
-                        <span>Fehler: {error.message || error}</span>
-                    </div>
-                )}
-                {!loading && !error && (
-                    <TimelineContainer />
-                )}
+            <div className="flex-1">
+                <TimelineContainer events={filteredEvents} />
             </div>
         </div>
     );

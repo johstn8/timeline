@@ -93,7 +93,7 @@ export default function UploadForm({
                                 value={cat}
                                 checked={form.categories.includes(cat)}
                                 onChange={handleChange}
-                                className="mr-1"
+                                className="mr-1 form-checkbox text-blue-600"
                             />
                             {cat}
                         </label>

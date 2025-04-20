@@ -15,6 +15,8 @@ module.exports = {
                     50: '#eef2ff',
                     500: '#6366f1',
                     700: '#4338ca',
+                    800: '#3b4352',
+                    900: '#14171c',
                 },
                 darkmode_page: '#111827',
                 darkmode_header_footer: '#2d3748',

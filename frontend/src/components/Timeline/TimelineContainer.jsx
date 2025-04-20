@@ -1,39 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import useResizeObserver from '@/hooks/useResizeObserver';
-import useZoomPan from '@/hooks/useZoomPan';
-import useTimelineData from '@/hooks/useTimelineData';
+import React, { useState, useEffect } from 'react';
+import useResizeObserver from '../../hooks/useResizeObserver';
+import useZoomPan from '../../hooks/useZoomPan';
 import Axis from './Axis';
 import EventLayer from './EventLayer';
 import Tooltip from './Tooltip';
 
-export default function TimelineContainer() {
+export default function TimelineContainer({ events }) {
     const { ref, width, height } = useResizeObserver();
-    const { events, categories } = useTimelineData();
-
-    const INITIAL_START = 1900;
-    const INITIAL_END = 2050;
     const {
         scale,
         offsetX,
         onWheel,
         START_YEAR,
-        END_YEAR,
         MS_PER_YEAR,
-    } = useZoomPan(ref, width, INITIAL_START, INITIAL_END);
-
+    } = useZoomPan(ref, width, 1900, 2050);
     const [hovered, setHovered] = useState(null);
-    const [excludedCats, setExcludedCats] = useState([]);
-
-    const filteredEvents = useMemo(
-        () =>
-            events.filter((event) => {
-                const cats = Array.isArray(event.categories)
-                    ? event.categories
-                    : [event.category];
-                return !cats.some((c) => excludedCats.includes(c));
-            }),
-        [events, excludedCats]
-    );
 
     useEffect(() => {
         const el = ref.current;
@@ -51,11 +32,10 @@ export default function TimelineContainer() {
                     scale={scale}
                     offsetX={offsetX}
                     START_YEAR={START_YEAR}
-                    END_YEAR={END_YEAR}
                     MS_PER_YEAR={MS_PER_YEAR}
                 />
                 <EventLayer
-                    events={filteredEvents}
+                    events={events}
                     scale={scale}
                     offsetX={offsetX}
                     width={width}

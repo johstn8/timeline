@@ -1,77 +1,58 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-const DEFAULT_CATEGORIES = [
-    'Wirtschaft',
-    'Religion',
-    'Krieg',
-    'Erdgeschichte',
-    'Politik',
-    'Kultur',
-];
-
-export default function FilterMenu({
-    categories = DEFAULT_CATEGORIES,
-    excluded = [],        // ausgeblendete Kategorien
-    onChange,
-    className = '',
-}) {
+export default function FilterMenu({ categories, selected, onChange }) {
     const [open, setOpen] = useState(false);
-    const wrapperRef = useRef(null);
+    const ref = useRef(null);
 
+    // Klick außerhalb schließt Menü
     useEffect(() => {
-        function handleClickOutside(e) {
-            if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
                 setOpen(false);
             }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        }; document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const toggleCategory = (cat) => {
-        const next = excluded.includes(cat)
-            ? excluded.filter((c) => c !== cat)
-            : [...excluded, cat];
+    // Kategorie umschalten
+    const toggle = (cat) => {
+        const next = selected.includes(cat)
+            ? selected.filter((c) => c !== cat)
+            : [...selected, cat];
         onChange(next);
     };
 
     return (
-        <div ref={wrapperRef} className={`relative inline-block ${className}`}>
+        <div ref={ref} className="relative inline-block">
             <button
                 type="button"
-                className="px-3 py-2 border rounded dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                className="px-3 py-2 border rounded bg-white dark:bg-brand-900 shadow cursor-pointer hover:bg-gray-100 dark:hover:bg-brand-800"
                 onClick={() => setOpen((o) => !o)}
             >
-                Filter <span className="ml-1 text-xs">({excluded.length})</span>
+                Filter ({selected.length}/{categories.length})
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50">
-                    <ul className="max-h-60 overflow-y-auto">
-                        {categories.map((cat) => {
-                            const id = `filter-${cat}`;
-                            return (
-                                <li
-                                    key={cat}
-                                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center cursor-pointer select-none"
-                                    onClick={() => toggleCategory(cat)}
-                                >
-                                    <input
-                                        id={id}
-                                        type="checkbox"
-                                        checked={!excluded.includes(cat)}
-                                        onChange={() => toggleCategory(cat)}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="mr-2 accent-blue-900 dark:accent-blue-600 focus:outline-none focus:ring-0 focus:border-transparent"
-                                    />
-                                    <label htmlFor={id} className="cursor-pointer flex-1" onClick={(e) => e.stopPropagation()}>
-                                        {cat}
-                                    </label>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
+                <ul className="absolute right-0 mt-2 w-48 border rounded bg-white dark:bg-brand-900 shadow max-h-60 overflow-auto z-50">
+                    {categories.map((cat) => (
+                        <li
+                            key={cat}
+                            className="flex items-center px-3 py-1 hover:bg-gray-100 dark:hover:bg-brand-800 cursor-pointer"
+                            onClick={() => toggle(cat)}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={selected.includes(cat)}
+                                readOnly
+                                className="mr-2 form-checkbox text-blue-600 focus:ring-0"
+                            />
+                            <span>{cat}</span>
+                        </li>
+                    ))}
+                    {categories.length === 0 && (
+                        <li className="px-3 py-1 text-gray-500">Keine Kategorien verfügbar</li>
+                    )}
+                </ul>
             )}
         </div>
     );
