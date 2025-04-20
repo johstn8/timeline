@@ -16,11 +16,18 @@ export function chooseYearStep(pxPerYear) {
     return steps.find(s => s >= targetYears) || steps[steps.length - 1];
 }
 
+// Formatiert Jahr als String:
+// • < 1e6 → vollständige Zahl (z.B. "2000")
+// • ≥ 1e6 und < 1e9 → "x.y Mio"
+// • ≥ 1e9 → "x.y Mrd"
 export function formatYearLabel(year) {
-    if (year === -13_800_000_000) return 'Urknall';
     const abs = Math.abs(year);
-    if (abs >= 1e9) return `${(year / 1e9).toFixed(1)} Mrd`;
-    if (abs >= 1e6) return `${(year / 1e6).toFixed(1)} Mio`;
-    if (abs >= 1e3) return `${(year / 1e3).toFixed(1)} Tsd`;
+    if (abs >= 1e9) {
+        return `${(year / 1e9).toFixed(1)} Mrd`;
+    }
+    if (abs >= 1e6) {
+        return `${(year / 1e6).toFixed(1)} Mio`;
+    }
+    // Für alle kleineren Werte komplette Jahreszahl
     return `${year}`;
 }

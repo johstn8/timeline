@@ -45,6 +45,7 @@ export default function Axis({
                         y={-10}
                         textAnchor="middle"
                         className="text-xs select-none"
+                        fill="currentColor"
                     >
                         {t.label}
                     </text>
