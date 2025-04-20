@@ -13,7 +13,7 @@ export default function useTimelineData() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const timelineStart = new Date('0000-01-01').getTime();
+    const timelineStart = new Date('1970-01-01').getTime();
 
     useEffect(() => {
         const abort = new AbortController();

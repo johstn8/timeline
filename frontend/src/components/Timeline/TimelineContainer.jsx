@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useResizeObserver from '@/hooks/useResizeObserver';
 import useZoomPan from '@/hooks/useZoomPan';
 import useTimelineData from '@/hooks/useTimelineData';
@@ -8,38 +8,45 @@ import Tooltip from './Tooltip';
 import CategoryFilter from '@/components/Filters/CategoryFilter';
 
 export default function TimelineContainer() {
-    // Hook für Breite/Höhe des Containers
+    // Größe des Containers
     const { ref, width, height } = useResizeObserver();
 
-    // Zoom- und Pan-Logik (Mausrad & Shift+Mausrad)
-    const { scale, offsetX, onWheel } = useZoomPan();
+    // Zoom & Pan – Hook bekommt die Ref des Containers
+    const { scale, offsetX, onWheel } = useZoomPan(ref);
 
-    // Laden der Timeline-Daten und Kategorien
+    // Timeline‑Daten aus dem Service‑Hook
     const { events, categories, timelineStart } = useTimelineData();
 
-    // State für Tooltip-Hover und ausgewählte Kategorien
+    // Tooltip‑ & Filter‑State
     const [hoveredEvent, setHoveredEvent] = useState(null);
     const [selectedCategories, setSelectedCategories] = useState(categories);
 
-    // Gefilterte Events nach ausgewählten Kategorien
-    const filteredEvents = events.filter(e =>
+    // Gefilterte Events nach Kategorien
+    const filteredEvents = events.filter((e) =>
         selectedCategories.includes(e.category)
     );
 
+    /**
+     * Native (nicht‑passive) wheel‑Listener anbinden.
+     * React‑synthetic events sind immer passiv und erlauben kein preventDefault.
+     */
+    useEffect(() => {
+        if (!ref.current) return;
+        const el = ref.current;
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel);
+    }, [ref, onWheel]);
+
     return (
-        <div
-            ref={ref}
-            className="relative w-full h-full overflow-hidden"
-            onWheelCapture={onWheel}
-        >
-            {/* Kategorie-Filter oben rechts */}
+        <div ref={ref} className="relative w-full h-full overflow-hidden">
+            {/* Kategorie‑Filter */}
             <CategoryFilter
                 categories={categories}
                 selected={selectedCategories}
                 onChange={setSelectedCategories}
             />
 
-            {/* SVG-Canvas für Achse und Events */}
+            {/* SVG‑Canvas */}
             <svg width={width} height={height} className="absolute top-0 left-0">
                 <Axis
                     width={width}
@@ -47,6 +54,7 @@ export default function TimelineContainer() {
                     scale={scale}
                     offsetX={offsetX}
                 />
+
                 <EventLayer
                     events={filteredEvents}
                     scale={scale}
@@ -57,12 +65,8 @@ export default function TimelineContainer() {
                 />
             </svg>
 
-            {/* Tooltip für das aktuell gehighoverte Event */}
-            {hoveredEvent && (
-                <Tooltip
-                    event={hoveredEvent}
-                />
-            )}
+            {/* Tooltip */}
+            {hoveredEvent && <Tooltip event={hoveredEvent} />}
         </div>
     );
 }
