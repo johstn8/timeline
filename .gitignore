@@ -1,0 +1,5 @@
+node_modules
+config/.env
+config/firebase-service-account.json
+config/websiteInfo.json
+chatgpt_data

@@ -1,0 +1,27 @@
+{
+    "name": "timeline-project",
+    "private": true,
+    "version": "0.1.0",
+    "description": "Responsive, zoom- & pan-fähiger historischer Zeitstrahl mit Admin- und KI-Integration",
+    "scripts": {
+        "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
+        "dev:frontend": "npm --prefix frontend run dev",
+        "dev:backend": "npm --prefix backend run dev",
+        "build": "npm --prefix frontend run build && npm --prefix backend run build",
+        "start": "node backend/src/index.js",
+        "lint": "eslint \"./**/*.{ts,tsx,js,jsx}\" --quiet"
+    },
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "concurrently": "^8.2.0",
+        "dotenv": "^16.4.2"
+    },
+    "author": "Johann Stein",
+    "license": "MIT"
+}

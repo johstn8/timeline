@@ -1,0 +1,16 @@
+{
+    "owner": {
+        "name": "",
+        "address": {
+            "street": "",
+            "postalCode": "",
+            "city": "",
+            "country": ""
+        },
+        "email": "",
+        "githubUsername": ""
+    },
+    "imprintInfo": {
+        "imprintNote": "Dies ist eine private, nicht-kommerzielle Website ohne journalistisch-redaktionelle Inhalte."
+    }
+}

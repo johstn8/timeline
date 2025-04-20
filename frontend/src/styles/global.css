@@ -1,0 +1,57 @@
+@config "../../tailwind.config.cjs";
+@import "tailwindcss";
+
+@layer base {
+
+    html,
+    body {
+        height: 100%;
+        overflow: hidden;
+        @apply bg-lightmode_page dark:bg-darkmode_page;
+        @apply antialiased text-gray-900 dark:text-white;
+    }
+
+    body {
+        font-family: theme('fontFamily.sans');
+    }
+
+    /* Globale Styles für Form-Elemente im Light Mode */
+    input,
+    textarea,
+    select {
+        @apply bg-white text-gray-900 border border-gray-300 rounded;
+        @apply focus:outline-none focus:ring focus:border-blue-500;
+    }
+
+    /* Dark-Mode Overrides für Form-Elemente */
+    .dark input,
+    .dark textarea,
+    .dark select {
+        @apply bg-gray-800 text-white border-gray-600;
+    }
+
+    /* Platzhalter-Farben */
+    input::placeholder,
+    textarea::placeholder {
+        @apply text-gray-400;
+    }
+
+    .dark input::placeholder,
+    .dark textarea::placeholder {
+        @apply text-gray-500;
+    }
+}
+
+@layer components {
+    .btn {
+        @apply px-4 py-2 rounded font-medium focus:outline-none focus:ring;
+    }
+
+    .btn-primary {
+        @apply px-4 py-2 rounded font-medium focus:outline-none focus:ring bg-brand-500 text-white hover:bg-brand-700;
+    }
+
+    .btn-secondary {
+        @apply px-4 py-2 rounded font-medium focus:outline-none focus:ring bg-gray-600 text-white hover:bg-gray-700;
+    }
+}
