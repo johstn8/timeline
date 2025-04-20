@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+// src/components/Timeline/TimelineContainer.jsx
+import React, { useState, useMemo, useEffect } from 'react';
 import useResizeObserver from '@/hooks/useResizeObserver';
 import useZoomPan from '@/hooks/useZoomPan';
 import useTimelineData from '@/hooks/useTimelineData';
-
 import Axis from './Axis';
 import EventLayer from './EventLayer';
 import Tooltip from './Tooltip';
@@ -11,7 +11,6 @@ import CategoryFilter from '@/components/Filters/CategoryFilter';
 export default function TimelineContainer() {
     const { ref, width, height } = useResizeObserver();
     const { events, categories, timelineStart } = useTimelineData();
-
     const { scale, offsetX, onWheel } = useZoomPan(ref, width, timelineStart);
 
     const [hovered, setHovered] = useState(null);
@@ -22,26 +21,28 @@ export default function TimelineContainer() {
             events.filter((e) =>
                 selectedCategories.length === 0
                     ? true
-                    : (Array.isArray(e.categories)
-                        ? e.categories
-                        : [e.category])
-                        .some((c) => selectedCategories.includes(c))
+                    : (Array.isArray(e.categories) ? e.categories : [e.category]).some((c) =>
+                        selectedCategories.includes(c)
+                    )
             ),
         [events, selectedCategories]
     );
 
+    /* ——  native Wheel‑Listener (non‑passive)  —— */
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel);
+    }, [ref, onWheel]);
+
     return (
-        <div
-            ref={ref}
-            className="relative w-full h-full overflow-hidden"
-            onWheelCapture={onWheel}
-        >
+        <div ref={ref} className="relative w-full h-full overflow-hidden">
             <CategoryFilter
                 categories={categories}
                 selected={selectedCategories}
                 onChange={setSelectedCategories}
             />
-
             <svg width={width} height={height} className="absolute top-0 left-0">
                 <Axis
                     width={width}
@@ -50,7 +51,6 @@ export default function TimelineContainer() {
                     offsetX={offsetX}
                     timelineStart={timelineStart}
                 />
-
                 <EventLayer
                     events={filteredEvents}
                     scale={scale}
@@ -60,7 +60,6 @@ export default function TimelineContainer() {
                     onHover={setHovered}
                 />
             </svg>
-
             {hovered && (
                 <Tooltip
                     event={hovered.event}
