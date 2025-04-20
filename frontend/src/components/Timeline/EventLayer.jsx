@@ -1,43 +1,43 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import EventDot from './EventDot';
 
-/**
- * Rendert alle EventDots auf der Achse.
- *
- * Props
- *  • events          – Array der Event‑Objekte
- *  • scale           – px per ms
- *  • timelineStart   – Startzeit (ms seit 1970‑01‑01 UTC)
- *  • offsetX         – horizontaler Pan‑Offset (px)
- *  • height          – Höhe des SVG‑Bereichs (px)
- *  • onHover(obj)    – Callback für Tooltip { event, position } | null
- */
 export default function EventLayer({
     events,
     scale,
-    timelineStart,
     offsetX,
+    width,       // neu
     height,
     onHover,
+    START_YEAR,
+    MS_PER_YEAR
 }) {
     const midY = height / 2;
+    const pxPerYear = scale * MS_PER_YEAR;
+
+    // nur Events rendern, die im Viewport (±100 px) liegen
+    const visibleEvents = useMemo(
+        () =>
+            events.filter((e) => {
+                const year = new Date(e.startDate).getUTCFullYear();
+                const x = (year - START_YEAR) * pxPerYear + offsetX;
+                return x > -100 && x < width + 100;
+            }),
+        [events, pxPerYear, offsetX, width, START_YEAR]
+    );
 
     return (
         <g>
-            {events.map((event) => {
-                // Zeit‑Delta seit timelineStart in ms → px
-                const t = new Date(event.startDate).getTime() - timelineStart;
-                const x = t * scale + offsetX;
-                const y = midY;
-
+            {visibleEvents.map((ev) => {
+                const year = new Date(ev.startDate).getUTCFullYear();
+                const x = (year - START_YEAR) * pxPerYear + offsetX;
                 return (
                     <EventDot
-                        key={event.id}
+                        key={ev.id}
                         x={x}
-                        y={y}
-                        importance={event.importance ?? 1}
+                        y={midY}
+                        importance={ev.importance || 1}
                         onMouseEnter={() =>
-                            onHover({ event, position: { x: x + 8, y: y - 24 } })
+                            onHover({ event: ev, position: { x: x + 8, y: midY - 24 } })
                         }
                         onMouseLeave={() => onHover(null)}
                     />

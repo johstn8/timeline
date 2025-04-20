@@ -1,57 +1,68 @@
 import { useState, useCallback, useEffect } from 'react';
 
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+const START_YEAR = -13_800_000_000;  // Urknall
+const END_YEAR = 3_000;          // maximales Jahr
+const FULL_MS = (END_YEAR - START_YEAR) * MS_PER_YEAR;
 
-/**
- * Hook für Zoom & Pan eines horizontalen Zeitstrahls.
- *
- * @param {React.RefObject<HTMLElement>} ref          – DOM‑Element für Wheel‑Events
- * @param {number}                       width        – Breite des Containers in px
- * @param {number}                       timelineStart– Startzeit (ms seit 1970)
- */
-export default function useZoomPan(ref, width, timelineStart) {
-    const [scale, setScale] = useState(1e-8);
-    const [offsetX, setOffX] = useState(0);
+export default function useZoomPan(
+    ref,
+    width,
+    initialStartYear = START_YEAR,
+    initialEndYear = END_YEAR
+) {
+    const MIN_SCALE = width > 0
+        ? width / ((initialEndYear - initialStartYear) * MS_PER_YEAR)
+        : 1e-12;
 
-    // Initialer Zoom: Heute mittig
+    const [scale, setScale] = useState(MIN_SCALE);
+    const [offsetX, setOffsetX] = useState(0);
+
+    // initialer Viewport 1900–2050
     useEffect(() => {
-        if (!ref.current || width === 0) return;
-        const spanMs = Date.now() - timelineStart;
-        const newScale = width / spanMs;
-        const center = width / 2;
-        const todayOff = -spanMs * newScale + center;
-        setScale(newScale);
-        setOffX(todayOff);
-    }, [ref, width, timelineStart]);
+        if (!ref.current || width <= 0) return;
+        const spanMs = (initialEndYear - initialStartYear) * MS_PER_YEAR;
+        const initScale = width / spanMs;
+        const initOff = -(initialStartYear - START_YEAR) * MS_PER_YEAR * initScale;
+        setScale(initScale);
+        setOffsetX(initOff);
+    }, [ref, width, initialStartYear, initialEndYear]);
 
-    /**
-     * Wheel‑Event: Shift+Wheel → Pan; sonst → Zoom
-     * Vertikales Scrollen umgekehrt: Scroll ↑ zoomt rein, Scroll ↓ zoomt raus.
-     */
-    const onWheel = useCallback(
-        (e) => {
-            e.preventDefault();
-            const { deltaY, shiftKey, clientX } = e;
+    const onWheel = useCallback((e) => {
+        e.preventDefault();
+        if (!ref.current) return;
+        const { deltaY, shiftKey, clientX } = e;
+        const rect = ref.current.getBoundingClientRect();
+        const pivot = clientX - rect.left;
 
-            if (shiftKey) {
-                // horizontales Pan
-                setOffX((o) => o - deltaY);
-                return;
-            }
+        let newScale = scale;
+        let newOffset = offsetX;
 
-            // Scroll up (deltaY < 0) → reinzoomen (factor > 1)
-            // Scroll down (deltaY > 0) → rauszoomen (factor < 1)
+        if (shiftKey) {
+            // horizontales Panning
+            newOffset = offsetX - deltaY;
+        } else {
+            // Zoom: ↑ rein (factor>1), ↓ raus (factor<1)
             const factor = deltaY < 0 ? 1.1 : 0.9;
+            newScale = Math.max(scale * factor, MIN_SCALE);
+            newOffset = (offsetX - pivot) * (newScale / scale) + pivot;
+        }
 
-            if (!ref.current) return;
-            const rect = ref.current.getBoundingClientRect();
-            const pivot = clientX - rect.left;
+        // clamp Offset innerhalb [maxO..minO]
+        const maxOffset = 0;
+        const minOffset = width - FULL_MS * newScale;
+        newOffset = Math.min(Math.max(newOffset, minOffset), maxOffset);
 
-            setOffX((o) => (o - pivot) * factor + pivot);
-            setScale((s) => s * factor);
-        },
-        [ref]
-    );
+        setScale(newScale);
+        setOffsetX(newOffset);
+    }, [ref, scale, offsetX, width]);
 
-    return { scale, offsetX, onWheel };
+    return {
+        scale,
+        offsetX,
+        onWheel,
+        START_YEAR,
+        END_YEAR,
+        MS_PER_YEAR
+    };
 }

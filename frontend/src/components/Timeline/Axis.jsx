@@ -1,53 +1,53 @@
 import React, { useMemo } from 'react';
+import { chooseYearStep, formatYearLabel } from '@/lib/tickHelpers';
 
-const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
-const IDEAL_PX = 80;
-
-function pickStep(yearSpan) {
-    const pow = Math.pow(10, Math.floor(Math.log10(yearSpan)));
-    for (const m of [1, 2, 5, 10]) {
-        const step = m * pow;
-        if (step >= yearSpan) return step;
-    }
-    return 10 * pow;
-}
-
-export default function Axis({ width, height, scale, offsetX, timelineStart }) {
+export default function Axis({
+    width,
+    height,
+    scale,
+    offsetX,
+    START_YEAR,
+    END_YEAR,
+    MS_PER_YEAR
+}) {
     const midY = height / 2;
+    const pxPerYear = scale * MS_PER_YEAR;
+    const stepYears = chooseYearStep(pxPerYear);
 
-    // Guard gegen NaN oder ungültige Werte
-    if (!Number.isFinite(scale) || !Number.isFinite(offsetX) || !Number.isFinite(timelineStart) || width <= 0) {
-        return <g />;
-    }
+    // Sichtbarer Bereich in Jahren
+    const visStartYear = START_YEAR + (-offsetX) / pxPerYear;
+    const visEndYear = START_YEAR + (width - offsetX) / pxPerYear;
+    const firstTick = Math.ceil(visStartYear / stepYears) * stepYears;
 
     const ticks = useMemo(() => {
-        const msPerPx = 1 / scale;
-        const yearsPerPx = msPerPx / MS_PER_YEAR;
-        const desiredYears = yearsPerPx * IDEAL_PX;
-        const stepYears = pickStep(desiredYears);
-
-        const visStartYear = new Date(timelineStart + (-offsetX) / scale).getUTCFullYear();
-        const visEndYear = new Date(timelineStart + (width - offsetX) / scale).getUTCFullYear();
-
-        const firstTickYear = Math.floor(visStartYear / stepYears) * stepYears;
-        const tickArr = [];
-
-        for (let y = firstTickYear; y <= visEndYear; y += stepYears) {
-            const ms = new Date(`${y}-01-01T00:00:00Z`).getTime();
-            const x = (ms - timelineStart) * scale + offsetX;
-            if (!Number.isFinite(x)) continue;         // skip NaN/Infinity
-            tickArr.push({ x, label: y });
+        const arr = [];
+        for (let y = firstTick; y <= visEndYear; y += stepYears) {
+            const x = (y - START_YEAR) * pxPerYear + offsetX;
+            arr.push({ x, label: formatYearLabel(y) });
         }
-        return tickArr;
-    }, [width, scale, offsetX, timelineStart]);
+        return arr;
+    }, [firstTick, visEndYear, pxPerYear, offsetX]);
 
     return (
         <g>
-            <line x1={0} y1={midY} x2={width} y2={midY} stroke="currentColor" strokeWidth={2} />
-            {ticks.map((t) => (
-                <g key={t.label} transform={`translate(${t.x}, ${midY})`}>
+            <line
+                x1={0}
+                y1={midY}
+                x2={width}
+                y2={midY}
+                stroke="currentColor"
+                strokeWidth={2}
+            />
+            {ticks.map((t, i) => (
+                <g key={i} transform={`translate(${t.x},${midY})`}>
                     <line y2={-6} stroke="currentColor" />
-                    <text y={-10} textAnchor="middle" className="text-xs select-none">{t.label}</text>
+                    <text
+                        y={-10}
+                        textAnchor="middle"
+                        className="text-xs select-none"
+                    >
+                        {t.label}
+                    </text>
                 </g>
             ))}
         </g>
