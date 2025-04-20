@@ -1,4 +1,3 @@
-// src/components/Timeline/TimelineContainer.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import useResizeObserver from '@/hooks/useResizeObserver';
 import useZoomPan from '@/hooks/useZoomPan';
@@ -28,7 +27,6 @@ export default function TimelineContainer() {
         [events, selectedCategories]
     );
 
-    /* ——  native Wheel‑Listener (non‑passive)  —— */
     useEffect(() => {
         const el = ref.current;
         if (!el) return;
