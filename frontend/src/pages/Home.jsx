@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
 import React, { useState } from 'react';
 import useFetchEvents from '../hooks/useFetchEvents';
-import Timeline from '../components/Timeline/Timeline';
+import TimelineContainer from '../components/Timeline/TimelineContainer';
 import FilterMenu from '../components/Filters/FilterMenu';
 
 export default function Home() {
@@ -23,7 +23,7 @@ export default function Home() {
             </div>
 
             {/* Timeline-Fenster füllt Rest aus */}
-            <div className="relative flex-1 overflow-hidden">
+            <div className="relative w-full h-full flex-1 overflow-hidden">
                 {loading && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <span>Lädt Events…</span>
@@ -35,7 +35,7 @@ export default function Home() {
                     </div>
                 )}
                 {!loading && !error && (
-                    <Timeline events={events} />
+                    <TimelineContainer />
                 )}
             </div>
         </div>
