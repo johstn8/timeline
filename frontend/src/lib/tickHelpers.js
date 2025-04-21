@@ -23,10 +23,16 @@ export function chooseYearStep(pxPerYear) {
 export function formatYearLabel(year) {
     const abs = Math.abs(year);
     if (abs >= 1e9) {
-        return `${(year / 1e9).toFixed(1)} Mrd`;
+        return `${(year / 1e9).toFixed(1)} Mrd`;
+    }
+    if (abs >= 1e7) {
+        return `${(year / 1e6)} Mio`;
     }
     if (abs >= 1e6) {
-        return `${(year / 1e6).toFixed(1)} Mio`;
+        return `${(year / 1e6).toFixed(1)} Mio`;
+    }
+    if (abs >= 1e4) {
+        return `${(year / 1e3)} 000`
     }
     // Für alle kleineren Werte komplette Jahreszahl
     return `${year}`;
